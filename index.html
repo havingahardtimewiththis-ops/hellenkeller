@@ -1,59 +1,529 @@
-Review
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index of /projects</title>
     <title>Projects</title>
     <style>
-        /* --- Directory Listing Styles (Apache / macOS Finder "Index of" look) --- */
         * {
             box-sizing: border-box;
         }
+
         body {
-            font-family: "Times New Roman", serif;
             font-family: "Times New Roman", Times, serif;
             font-size: 16px;
-            background: white;
-            color: black;
             background: #ffffff;
             color: #000000;
             margin: 40px;
             padding: 0;
         }
-        h1 {
-            font-family: "Times New Roman", serif;
-            font-size: 32px;
-            font-weight: bold;
-            margin: 0 0 10px 0;
-            /* Reduced bottom margin */
-        }
-        /* The "Design Line" - Full width across the page */
-        hr.full-width {
+
         /* The Design Line */
         hr.design-line {
             border: none;
             border-top: 1px solid #ccc;
             width: 100%;
-            margin: 0 0 20px 0;
             margin: 0 0 24px 0;
         }
-        table {
-            width: auto;
-            min-width: 500px;
-            border-collapse: collapse;
-            border: none;
+
         /* Project List */
         .projects-container {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
-        th {
-            text-align: left;
-            font-family: "Times New Roman", serif;
-            font-weight: bold;
-            font-size: 18px;
-            /* Removed border-bottom from here as requested to "move the line up" */
-            padding: 4px 20px 4px 0;
+
+        .project-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-row {
+            font-size: 16px;
+            line-height: 1.4;
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .project-title {
+            font-weight: normal;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        .sep {
+            color: #000000;
+            user-select: none;
+        }
+
+        .nav-link {
+            color: mediumblue;
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .nav-link.active {
+            color: purple;
+            text-decoration: underline;
+        }
+
+        /* Dropdown Panels */
+        .project-dropdown {
+            margin-top: 14px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .project-dropdown.active {
+            display: block;
+        }
+
+        /* Thumbnails Container */
+        .thumbnails-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .thumbnail-img {
+            height: 130px;
+            width: auto;
+            max-width: 220px;
+            object-fit: contain;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            box-shadow: none;
+            display: block;
+            background: #fafafa;
+        }
+
+        .thumbnail-img:hover {
+            opacity: 0.85;
+        }
+
+        /* Expanded Image Overlay - NO Frame, NO Shadow */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+            border: none;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .lightbox-overlay.active {
+            display: flex;
+        }
+
+        .lightbox-img {
+            max-width: 92vw;
+            max-height: 92vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            filter: none !important;
+            display: block;
+            cursor: zoom-out;
+        }
+
+        /* A4 Word Document Styles */
+        .a4-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-start;
+            padding: 4px 0;
+        }
+
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            min-height: 297mm;
+            max-height: 297mm;
+            background: #ffffff;
+            border: 1px solid #dcdcdc;
+            box-shadow: none;
+            padding: 25.4mm; /* Standard Word 1 inch margins */
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            color: #000000;
+            overflow: hidden;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .a4-page p {
+            margin: 0 0 1em 0;
+            text-align: justify;
+        }
+
+        .a4-page em {
+            font-style: italic;
+        }
+
+        /* Responsive handling for smaller screens to keep A4 aspect */
+        @media screen and (max-width: 220mm) {
+            .a4-page {
+                width: 100%;
+                height: calc(100vw * 1.414);
+                min-height: calc(100vw * 1.414);
+                max-height: calc(100vw * 1.414);
+                padding: 18px;
+                font-size: 11pt;
+            }
+        }
+
+        /* Embedded Video Player - Clean, Responsive 16:9 */
+        .video-container {
+            margin-top: 10px;
+            margin-bottom: 12px;
+            width: 100%;
+            max-width: 720px;
+        }
+
+        .video-responsive-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000000;
+        }
+
+        .video-responsive-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-footer {
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .youtube-direct-link {
+            color: mediumblue;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .youtube-direct-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Design Line -->
+    <hr class="design-line">
+
+    <!-- Projects List -->
+    <div class="projects-container" id="projects-container"></div>
+
+    <!-- Lightbox for Image Expansion (Frameless & Shadowless) -->
+    <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+        <img id="lightbox-img" class="lightbox-img" src="" alt="Expanded Image" referrerpolicy="no-referrer" onclick="closeLightbox()">
+    </div>
+
+    <script>
+        const projects = [
+            {
+                id: "hellen-keller",
+                name: "HELLEN KELLER",
+                images: [
+                    "https://i.imgur.com/a13ycks.jpg",
+                    "https://i.imgur.com/nXMg202.jpg",
+                    "https://i.imgur.com/jFWbq2A.jpg"
+                ],
+                text: `
+<p>“Hellen” is the English form of the German adjective <em>hell</em>, which means bright, light, or pale, depending on context. As a proper name, it is a variant of Helena and carries the Greek meanings “sunbeam” or “shine.”</p>
+<p>“Keller” can be translated as basement, cellar, or cellarette. Typically, basement refers to the lower level of a house, while cellar is used for a specific room such as a wine cellar or storage cellar. In certain contexts, it can also mean vault (as in a bank vault) or be used idiomatically to indicate “being at rock bottom.”</p>
+<p>A Pun.</p>
+`,
+                videoId: "O6DiE1Db3dE"
+            },
+            {
+                id: "kunsthaus-baselland",
+                name: "KUNSTHAUS BASELLAND",
+                images: [
+                    "https://i.imgur.com/75UayTB.jpeg",
+                    "https://i.imgur.com/QaUtpvo.jpeg",
+                    "https://i.imgur.com/C4OZdg9.jpeg"
+                ],
+                text: `
+<p>“Lokah samastah sukhino bhavantu.”</p>
+<p>May all beings everywhere be happy and free, and may my thoughts, words, and actions contribute in some way to that happiness and freedom.</p>
+<p>Now, if pettiness is a spectrum, humanity wishes to stand on one end—as far away as possible from the opposite end, where the arts are called the art world. Because the art world is small, and talks shit — and to be small and have small thoughts is revealing of the small rooms and low ceilings of one’s spirit.</p>
+<p>In celebration of, as my dad would say, “one cannot have big ideas with low ceilings”, and of my own head having practically turned Mayan-baby-shaped from the low ceilings and small rooms of my spirit, I ask:</p>
+<p>Why did Kunsthaus Baselland print a huge picture of itself in the entrance hall?</p>
+<p>I think of a video where Tyra Banks gifts a picture of herself to Miley Cyrus' on her 18th birthday. It's somehow equally insane that the giant self portrait is the largest picture ever shown in the new building. To put the Haus in front of the Kunst re-establishes a kind of natural order, but it is also a confession.</p>
+<p>Understandibly, the recent discovery that the real solution to most issues is not an artvertisement, but, in fact, complaining on the internet, puts them and many others in a weird position. In a way i think we've always known that the purpose of an art museum, like a church, is to show us what we(it) want to be rather than what we(it) are. With that in mind, the messiness and ambiguity of art exhibitions seems inconvenient. Why not deal directly in virtue if that is what we are selling. But, Is the answer to an empty church really a bigger, emptier church?</p>
+<p>“Lokah samastah sukhino bhavantu.”</p>
+<p>I don't want to be this small. I know. The heart breaks when you've built it and they haven't come. The heart brakes when you've done your best under the circumstances and they pretend not to understand the sacrifices you've made. The heart brakes when your high ceilings and large rooms are met by small-spirited complaints.</p>
+<p>I know that in your heart of hearts you have already thought anything that anyone could ever say about you. How difficult it is for the chariot to always feel like a pumpkin. Do they not understand you are on their side? We will loose everyone their invitation to a ball at the castle. But, what is a ball at the castle anyway? After all, I suppose it could be frightfully dull, and boring, and completely... completely wonderful.</p>
+`,
+                videoId: "58LoBkwSWNs"
+            },
+            {
+                id: "zuruckhaltung",
+                name: "ZURÜCKHALTUNG",
+                images: [
+                    "https://i.imgur.com/5Viud1O.jpeg",
+                    "https://i.imgur.com/jLWVThk.jpeg",
+                    "https://i.imgur.com/dmzIxmb.jpeg"
+                ],
+                text: `
+<p>The end of the year is a time to let go. A time for christ. It sucks to sit through some kind of dance art show. It is too slow to last through if I have to sit on the floor. If we are meant to be there, why are there no chairs? With how dance art is, and with how our times are, it makes me feel like I should try to blame Myslef. Am I like that? Do I pass of a half assed thing as new, to a crowd that is more or less forced to look? Yes I am . Why are we like that, them and I?</p>
+<p>“Somos los mejores, porque llamar la atención es lo mejor.”<br>(We are the best, because to attract attention is the best.)<br>Said by an emo kid on a show that tried to show new urban tribes in Chile from 2008.</p>
+<p>There is a made up set of rules which has messed up the mind of Scandinavians since 1933 when Aksel Sandemose wrote A fugitive Crosses the tracks. A joke on small towns, a you is talked to by a we:</p>
+<p>Post-book Sandemose said there is an 11th rule:<br>11 Don’t think that we don’t know something about you.</p>
+<p>A thing with these rules is that they are a point of pride to us Scandinavians. A deep part of what we think it is like to be here on earth. We feel two ways: (1.) the rules are there to make us feel bad which is not so nice, but (2.)we feel bad so that we all feel the same. I can not tell you how bad I feel or that I judge you when you break the rules. That would be to break rule 1, 4, 5 and 10(and 11). If I do tell you or not is all the same. Lutherans think God Knows who is saved and who is not before birth, since he is not in space or time. This is called Predestination. Luther hoped that this idea would make People feel less worried. It did not. Some kept diaries where they searched for signs that god had chosen them. Since all comes from god, it is not your fault If You do bad or good. Me and the dance performers can’t help how we are, but how we are is not a good sign. A good sign would be to do something great With good spirit, and then give our thanks to god for what we did. The inhumane amounts of modesty required when no blessing is of your making crystalizes into God’s greatest gift to the northern eurpoeans; the eerie pane of glass between us that makes any transfer of warmth extremely complicated.</p>
+<p>Modesty is good in all religions, but for us it only counts if you mean it. The Swiss protestant Calvin thought that it was worse to fake it than to not do it at all. He meant that when you are not modest you only fool yourself, when you fake it you fool everyone. Calvin made plans for Switzerland to teach the new way. This plan was to have state and church work to force “moral order” on to Geneva. Psalms could not have a choir because it would distract from scripture. Melody was cool but chords not. Decor, Images, and sculpture had to go. No more nice clothes or big parties. When you worked hard it was a good sign that god liked you. When it went well for you in your work it was a good sign. The rich loved that part. None of these were good signs unless you acted like you had nothing to do with your success or hard work.</p>
+`,
+                videoId: null
+            },
+            {
+                id: "cassidy-toner",
+                name: "CASSIDY TONER EXHIBITION AT KUNSTMUSEUM BASEL WITH THE LIGHTS TURNED OF",
+                images: [
+                    "https://i.imgur.com/ASQszdt.jpeg",
+                    "https://i.imgur.com/KQZAdRH.jpeg",
+                    "https://i.imgur.com/CTJbAzC.jpeg",
+                    "https://i.imgur.com/w9iDReK.jpeg",
+                    "https://i.imgur.com/HvhESVH.jpeg"
+                ],
+                text: `<p>Content to be added...</p>`,
+                videoId: null
+            },
+            {
+                id: "amazonas",
+                name: "AMAZONAS",
+                images: [
+                    "https://i.imgur.com/fO3n6q4.jpg",
+                    "https://i.imgur.com/FMiy4cU.jpg",
+                    "https://i.imgur.com/YNnnvNL.jpg",
+                    "https://i.imgur.com/LL1gPWx.jpg"
+                ],
+                text: `<p>Content to be added...</p>`,
+                videoId: null
+            }
+        ];
+
+        // Track active states per project: { [projectId]: null | 'images' | 'text' | 'video' }
+        const activeStates = {};
+
+        function renderProjects() {
+            const container = document.getElementById("projects-container");
+            container.innerHTML = "";
+
+            projects.forEach(project => {
+                const item = document.createElement("div");
+                item.className = "project-item";
+                item.id = `project-${project.id}`;
+
+                const row = document.createElement("div");
+                row.className = "project-row";
+
+                // Title
+                const title = document.createElement("span");
+                title.className = "project-title";
+                title.textContent = project.name;
+                row.appendChild(title);
+
+                // / images
+                row.appendChild(createSep());
+                const imgBtn = document.createElement("button");
+                imgBtn.className = "nav-link";
+                imgBtn.textContent = "images";
+                imgBtn.onclick = () => toggleSection(project.id, "images");
+                row.appendChild(imgBtn);
+
+                // / text
+                row.appendChild(createSep());
+                const textBtn = document.createElement("button");
+                textBtn.className = "nav-link";
+                textBtn.textContent = "text";
+                textBtn.onclick = () => toggleSection(project.id, "text");
+                row.appendChild(textBtn);
+
+                // / video (only for projects with video)
+                if (project.videoId) {
+                    row.appendChild(createSep());
+                    const videoBtn = document.createElement("button");
+                    videoBtn.className = "nav-link";
+                    videoBtn.textContent = "video";
+                    videoBtn.onclick = () => toggleSection(project.id, "video");
+                    row.appendChild(videoBtn);
+                }
+
+                item.appendChild(row);
+
+                // Dropdown container
+                const dropdown = document.createElement("div");
+                dropdown.className = "project-dropdown";
+                dropdown.id = `dropdown-${project.id}`;
+                item.appendChild(dropdown);
+
+                container.appendChild(item);
+            });
+        }
+
+        function createSep() {
+            const span = document.createElement("span");
+            span.className = "sep";
+            span.textContent = "/";
+            return span;
+        }
+
+        function toggleSection(projectId, section) {
+            const currentActive = activeStates[projectId];
+            const dropdown = document.getElementById(`dropdown-${projectId}`);
+            const projectItem = document.getElementById(`project-${projectId}`);
+
+            // Remove active style from all links in this project row
+            const buttons = projectItem.querySelectorAll(".nav-link");
+            buttons.forEach(btn => {
+                if (btn.textContent.trim() === section && currentActive !== section) {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+
+            if (currentActive === section) {
+                // Collapse
+                activeStates[projectId] = null;
+                dropdown.className = "project-dropdown";
+                dropdown.innerHTML = "";
+                return;
+            }
+
+            // Open section
+            activeStates[projectId] = section;
+            dropdown.className = "project-dropdown active";
+            dropdown.innerHTML = "";
+
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            if (section === "images") {
+                const thumbContainer = document.createElement("div");
+                thumbContainer.className = "thumbnails-container";
+                project.images.forEach(imgUrl => {
+                    const img = document.createElement("img");
+                    img.src = imgUrl;
+                    img.alt = project.name;
+                    img.className = "thumbnail-img";
+                    img.setAttribute("referrerpolicy", "no-referrer");
+                    img.onclick = () => openLightbox(imgUrl);
+                    thumbContainer.appendChild(img);
+                });
+                dropdown.appendChild(thumbContainer);
+            } else if (section === "text") {
+                const a4Wrapper = document.createElement("div");
+                a4Wrapper.className = "a4-wrapper";
+                dropdown.appendChild(a4Wrapper);
+                paginateA4(project.text, a4Wrapper);
+            } else if (section === "video") {
+                const vidContainer = document.createElement("div");
+                vidContainer.className = "video-container";
+
+                // Responsive 16:9 container with official embed and direct link fallback
+                vidContainer.innerHTML = `
+                    <div class="video-responsive-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/${project.videoId}?rel=0&playsinline=1" 
+                            title="${project.name} Video" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
+                            allowfullscreen="true">
+                        </iframe>
+                    </div>
+                    <div class="video-footer">
+                        <a href="https://www.youtube.com/watch?v=${project.videoId}" target="_blank" rel="noopener noreferrer" class="youtube-direct-link">Watch on YouTube ↗</a>
+                    </div>
+                `;
+                dropdown.appendChild(vidContainer);
+            }
+        }
+
+        // Automatic A4 Pagination Engine
+        function paginateA4(htmlContent, container) {
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = htmlContent.trim();
+            const childElements = Array.from(tempDiv.children);
+
+            let currentPage = createA4Page();
+            container.appendChild(currentPage);
+
+            childElements.forEach(el => {
+                currentPage.appendChild(el.cloneNode(true));
+                // If appending causes overflow, create a new A4 page
+                if (currentPage.scrollHeight > currentPage.clientHeight) {
+                    currentPage.removeChild(currentPage.lastElementChild);
+                    currentPage = createA4Page();
+                    container.appendChild(currentPage);
+                    currentPage.appendChild(el.cloneNode(true));
+                }
+            });
+        }
+
+        function createA4Page() {
+            const page = document.createElement("div");
+            page.className = "a4-page";
+            return page;
+        }
+
+        // Lightbox Functions (No Frame, No Shadow)
+        function openLightbox(src) {
+            const overlay = document.getElementById("lightbox");
+            const img = document.getElementById("lightbox-img");
+            img.src = src;
+            overlay.classList.add("active");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeLightbox() {
+            const overlay = document.getElementById("lightbox");
+            overlay.classList.remove("active");
+            document.getElementById("lightbox-img").src = "";
+            document.body.style.overflow = "auto";
+        }
+
+        // Close lightbox on Escape key
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeLightbox();
+            }
+        });
+
+        // Initial render
+        renderProjects();
+    </script>
+</body>
+</html>
