@@ -1,3 +1,9 @@
+Analyzed index.html:L1-800
+Analyzed index.html:L801-1030
+
+Here is the complete, self-contained `index.html` code ready to copy and paste:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -186,6 +192,39 @@
             font-style: italic;
         }
 
+        .a4-page blockquote {
+            margin: 0 0 1em 0;
+            padding-left: 18px;
+            border-left: 2px solid #ccc;
+            font-style: italic;
+        }
+
+        .a4-page blockquote p {
+            margin-bottom: 0.5em;
+        }
+
+        .a4-page h2 {
+            font-size: 12.5pt;
+            font-weight: bold;
+            margin: 0.8em 0 0.3em 0;
+            font-family: inherit;
+        }
+
+        .a4-page ol, .a4-page ul {
+            margin: 0 0 1em 0;
+            padding-left: 28px;
+        }
+
+        .a4-page li {
+            margin-bottom: 0.5em;
+            text-align: justify;
+        }
+
+        .a4-page a {
+            color: mediumblue;
+            text-decoration: underline;
+        }
+
         /* Responsive handling for smaller screens to keep A4 aspect */
         @media screen and (max-width: 220mm) {
             .a4-page {
@@ -321,6 +360,7 @@
   </ol>
 
 </article>
+`,
                 videoId: null
             },
             {
@@ -467,7 +507,7 @@
       The nature of online presentations made it difficult for the
       presentation to be at all technical or even practical. The presentation
       was instead centered around a website that I made with the URL
-      <a href="https://www.wwwitgenstein.com">www.wwwitgenstein.com</a>.
+      <a href="https://www.wwwitgenstein.com" target="_blank" rel="noopener noreferrer">www.wwwitgenstein.com</a>.
       The design of the website is structured around a frame that shows a
       chosen picture, link, or bit of text in the center, and each separate
       part of the frame (left, right, top and bottom) links to another
@@ -536,7 +576,7 @@
 
     <p>
       Example number 3 from
-      <a href="https://www.wwwitgenstein.com">www.wwwitgenstein.com</a>:
+      <a href="https://www.wwwitgenstein.com" target="_blank" rel="noopener noreferrer">www.wwwitgenstein.com</a>:
     </p>
 
     <blockquote>
@@ -850,23 +890,112 @@
             }
         }
 
-        // Automatic A4 Pagination Engine
+        // Decompose DOM tree into atomic printable units
+        function extractUnits(node) {
+            const units = [];
+
+            function walk(n) {
+                if (n.nodeType !== Node.ELEMENT_NODE) return;
+                const tag = n.tagName.toUpperCase();
+
+                // Structural containers are unpacked into their children
+                if (tag === 'ARTICLE' || tag === 'SECTION' || tag === 'DIV' || tag === 'MAIN') {
+                    Array.from(n.children).forEach(child => walk(child));
+                } else if (tag === 'OL' || tag === 'UL') {
+                    // Unpack list items so long lists can flow across pages
+                    let index = parseInt(n.getAttribute('start')) || 1;
+                    Array.from(n.children).forEach(child => {
+                        if (child.tagName && child.tagName.toUpperCase() === 'LI') {
+                            units.push({
+                                type: 'li',
+                                listTag: tag,
+                                index: index,
+                                node: child.cloneNode(true)
+                            });
+                            index++;
+                        } else {
+                            walk(child);
+                        }
+                    });
+                } else {
+                    // Block units: P, BLOCKQUOTE, H1, H2, H3, etc.
+                    units.push({
+                        type: 'block',
+                        node: n.cloneNode(true)
+                    });
+                }
+            }
+
+            Array.from(node.children).forEach(child => walk(child));
+            return units;
+        }
+
+        // Automatic A4 Pagination Engine - Guarantees no empty pages and continuous text flow
         function paginateA4(htmlContent, container) {
+            container.innerHTML = "";
+
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = htmlContent.trim();
-            const childElements = Array.from(tempDiv.children);
+
+            const units = extractUnits(tempDiv);
+            if (units.length === 0) return;
 
             let currentPage = createA4Page();
             container.appendChild(currentPage);
 
-            childElements.forEach(el => {
-                currentPage.appendChild(el.cloneNode(true));
-                // If appending causes overflow, create a new A4 page
-                if (currentPage.scrollHeight > currentPage.clientHeight) {
-                    currentPage.removeChild(currentPage.lastElementChild);
+            let currentList = null;
+
+            units.forEach(unit => {
+                let appendedElement = null;
+
+                if (unit.type === 'li') {
+                    if (!currentList || currentList.parentElement !== currentPage || currentList.tagName !== unit.listTag) {
+                        currentList = document.createElement(unit.listTag);
+                        if (unit.listTag === 'OL') {
+                            currentList.setAttribute('start', unit.index);
+                        }
+                        currentPage.appendChild(currentList);
+                    }
+                    appendedElement = unit.node.cloneNode(true);
+                    currentList.appendChild(appendedElement);
+                } else {
+                    currentList = null;
+                    appendedElement = unit.node.cloneNode(true);
+                    currentPage.appendChild(appendedElement);
+                }
+
+                // Check if page overflows printable boundary
+                // NEVER evict if currentPage has only this element (prevents empty pages)
+                const hasPreviousContent = (currentPage.children.length > 1) || 
+                    (currentList && currentList.children.length > 1);
+
+                if (hasPreviousContent && currentPage.scrollHeight > currentPage.clientHeight) {
+                    // Remove overflowing element from current page
+                    if (unit.type === 'li') {
+                        currentList.removeChild(appendedElement);
+                        if (currentList.children.length === 0) {
+                            currentPage.removeChild(currentList);
+                        }
+                    } else {
+                        currentPage.removeChild(appendedElement);
+                    }
+
+                    // Create next page
                     currentPage = createA4Page();
                     container.appendChild(currentPage);
-                    currentPage.appendChild(el.cloneNode(true));
+                    currentList = null;
+
+                    // Append onto fresh new page
+                    if (unit.type === 'li') {
+                        currentList = document.createElement(unit.listTag);
+                        if (unit.listTag === 'OL') {
+                            currentList.setAttribute('start', unit.index);
+                        }
+                        currentPage.appendChild(currentList);
+                        currentList.appendChild(unit.node.cloneNode(true));
+                    } else {
+                        currentPage.appendChild(unit.node.cloneNode(true));
+                    }
                 }
             });
         }
@@ -905,3 +1034,4 @@
     </script>
 </body>
 </html>
+```
