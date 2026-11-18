@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HELLEN KELLER</title>
+    <title>Projects</title>
     <style>
         * {
             box-sizing: border-box;
@@ -745,6 +744,20 @@
 </article>
 `,
                 videoId: null
+            },
+            {
+                id: "lance",
+                name: "LANCE",
+                images: [
+                    "https://i.imgur.com/vsQLlYz.jpg",
+                    "https://i.imgur.com/M3UuZwX.jpg",
+                    "https://i.imgur.com/oB0hCWO.jpg",
+                    "https://i.imgur.com/xxtMALv.jpg",
+                    "https://i.imgur.com/1eQPrwy.jpg",
+                    "https://i.imgur.com/CV2egc5.jpg"
+                ],
+                text: null,
+                videoId: null
             }
         ];
 
@@ -770,20 +783,24 @@
                 row.appendChild(title);
 
                 // / images
-                row.appendChild(createSep());
-                const imgBtn = document.createElement("button");
-                imgBtn.className = "nav-link";
-                imgBtn.textContent = "images";
-                imgBtn.onclick = () => toggleSection(project.id, "images");
-                row.appendChild(imgBtn);
+                if (project.images && project.images.length > 0) {
+                    row.appendChild(createSep());
+                    const imgBtn = document.createElement("button");
+                    imgBtn.className = "nav-link";
+                    imgBtn.textContent = "images";
+                    imgBtn.onclick = () => toggleSection(project.id, "images");
+                    row.appendChild(imgBtn);
+                }
 
-                // / text
-                row.appendChild(createSep());
-                const textBtn = document.createElement("button");
-                textBtn.className = "nav-link";
-                textBtn.textContent = "text";
-                textBtn.onclick = () => toggleSection(project.id, "text");
-                row.appendChild(textBtn);
+                // / text (only for projects with text)
+                if (project.text) {
+                    row.appendChild(createSep());
+                    const textBtn = document.createElement("button");
+                    textBtn.className = "nav-link";
+                    textBtn.textContent = "text";
+                    textBtn.onclick = () => toggleSection(project.id, "text");
+                    row.appendChild(textBtn);
+                }
 
                 // / video (only for projects with video)
                 if (project.videoId) {
@@ -1029,4 +1046,3 @@
     </script>
 </body>
 </html>
-
